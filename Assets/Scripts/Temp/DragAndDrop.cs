@@ -59,11 +59,11 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     }
     public virtual void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log("OnPointerDown, "+name);
+        //Debug.Log("OnPointerDown, "+name);
     }
     public virtual void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("OnPointerEnter, "+name);
+        //Debug.Log("OnPointerEnter, "+name);
         int parentNum = 0;
         Transform t = transform;
         while (t.parent != null)
@@ -79,7 +79,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     }
     public virtual void OnPointerExit(PointerEventData eventData)
     {
-        Debug.Log("OnPointerExit, "+name);
+        //Debug.Log("OnPointerExit, "+name);
         if (Render_Image != null)
         {
             Render_Image.color = new Color(1, 1, 1, 1);

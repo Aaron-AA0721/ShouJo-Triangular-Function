@@ -434,7 +434,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1684315576}
         m_TargetAssemblyTypeName: MathExpression, Assembly-CSharp
-        m_MethodName: StartRenderExpression
+        m_MethodName: CancelAllSameTerms
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -777,7 +777,7 @@ MonoBehaviour:
   MathOperator: 
   RawContent: 
   isNegative: 0
-  InitialRawContent: -a
+  InitialRawContent: c
   Terms: []
   ParentTerm: {fileID: 0}
 --- !u!1 &1290264367
@@ -1103,7 +1103,7 @@ MonoBehaviour:
   MathOperator: 
   RawContent: 
   isNegative: 0
-  InitialRawContent: cosA/(1+sinA)=sin2B/(1+cos2B)
+  InitialRawContent: -(((-b)*(-c)/b))=b/(-b)*c
   Terms: []
   ParentTerm: {fileID: 0}
 --- !u!1 &1857034997
@@ -1388,7 +1388,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Render
+  m_Text: cancel
 --- !u!222 &1925319878
 CanvasRenderer:
   m_ObjectHideFlags: 0

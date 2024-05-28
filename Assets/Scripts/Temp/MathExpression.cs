@@ -149,7 +149,7 @@ public class MathExpression : DragAndDrop
     }
     public void InitializebyString(string content, MathExpression parent = null, int parentIndex = -1)
     {
-        Debug.Log("Start Initializing: " + content);
+        //Debug.Log("Start Initializing: " + content);
         RawContent = content;
         CheckComponents();
         ParentTerm = parent;
@@ -264,7 +264,7 @@ public class MathExpression : DragAndDrop
                         if (OperationPriority[content[tmpOPs[i]].ToString()] == minimumOPpriority)
                         {
                             MathOperator += content[tmpOPs[i]];
-                            Debug.Log(MathOperator+"|"+name);
+                            //Debug.Log(MathOperator+"|"+name);
                             
                             if (OperatorCount == 0 && firstNegative)
                             {
@@ -282,7 +282,7 @@ public class MathExpression : DragAndDrop
                     }
                     else
                     {
-                        Debug.Log("No term between operators!" +curr +"|"+tmpOPs[i]);
+                        Debug.LogError("No term between operators!" +curr +"|"+tmpOPs[i]);
                         curr++;
                         continue;
                     }
@@ -304,8 +304,8 @@ public class MathExpression : DragAndDrop
                 Terms = null;
                 RawContent = content;
                 if (firstNegative) isNegative = true;
-                Debug.Log(name+"| no tmpOPs");
-                if(ParentTerm == null)StartCoroutine(RenderExpression());
+                //Debug.Log(name+"| no tmpOPs");
+                //if(ParentTerm == null)StartCoroutine(RenderExpression());
             }
         }
         // if (Terms != null)
@@ -350,7 +350,7 @@ public class MathExpression : DragAndDrop
                 for (int i = 0; i < Terms.Length; i++)
                 {
                     if(Terms[i] != null) yield return Terms[i].RenderExpression();
-                    else Debug.Log("empty term | "+name);
+                    //else Debug.Log("empty term | "+name);
                 }
             }
                 
@@ -495,7 +495,6 @@ public class MathExpression : DragAndDrop
                     int DenominatorCount = Denominators.Count;
                     denominatorWidth += 35 * (DenominatorCount - 1);
                     numeratorWidth += 35 * (Numerators.Count - 1);
-                    Debug.Log(numeratorWidth+"|"+denominatorWidth);
                     GameObject FLineObject = new GameObject($"FractionLine");
                     FLineObject.transform.parent = transform;
                     FLineObject.AddComponent<Image>();
@@ -594,6 +593,10 @@ public class MathExpression : DragAndDrop
             {
                 Enclosed = "Parenthesized";
             }
+            else
+            {
+                Enclosed = "None";
+            }
         }
 
         if (ParentTerm != null && ParentTerm.MathOperator == "=")
@@ -643,7 +646,7 @@ public class MathExpression : DragAndDrop
         }
         if (isNegative)
         {
-            if (ParentTerm && ParentTerm.MathOperator!="=")
+            if (ParentTerm && ParentTerm.MathOperator!="=" && ParentIndex!=0)
             {
                 NegativeSymbol = new RectTransform[3];
             }
@@ -654,11 +657,10 @@ public class MathExpression : DragAndDrop
             MinusObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Image/Operators/Minus");
             NegativeSymbol[0] = MinusObject.GetComponent<RectTransform>();
             NegativeSymbol[0].sizeDelta = new Vector2(25, 5);
-            NegativeSymbol[0].position = 
-                new Vector3(Rect.position.x - Rect.rect.width / 2 - 10, Rect.position.y, Rect.position.z);
+            NegativeSymbol[0].localPosition = 
+                new Vector3(- Rect.rect.width / 2 - 10, 0, 0);
             Rect.sizeDelta = new Vector2(Rect.rect.width + 40, Rect.rect.height);
-            ContentText.GetComponent<RectTransform>().position =
-                ContentText.GetComponent<RectTransform>().position + new Vector3(15, 0, 0);
+            ContentText.GetComponent<RectTransform>().position += new Vector3(15, 0, 0);
             if (OperatorObjects != null)
             {
                 foreach (var opObj in OperatorObjects)
@@ -681,7 +683,6 @@ public class MathExpression : DragAndDrop
             }
             if (NegativeSymbol.Length == 3)
             {
-                Debug.Log(name+"|"+RawContent+"|"+Rect.rect.width);
                 GameObject LeftParenthese = new GameObject($"LeftParenthese");
                 LeftParenthese.transform.parent = transform;
                 LeftParenthese.AddComponent<Image>();
@@ -724,14 +725,14 @@ public class MathExpression : DragAndDrop
     {
         if (MathOperator == "=")
         {
+            MathExpression Add = CreateCopy(newTerm);
             Terms[0].addRegularOperation(CreateCopy(newTerm),operatorChar);
-            Terms[1].addRegularOperation(CreateCopy(newTerm),operatorChar);
+            Terms[1].addRegularOperation(Add,operatorChar);
             StartCoroutine(RenderExpression());
-            //Debug.Log(Terms[0].name+"|"+Terms[1].name+"|"+Terms[0].Terms.Length+"|"+Terms[1].Terms.Length);
         }
         else 
         {
-            //newTerm.CheckComponents();
+            Debug.Log(ParentIndex+" "+operatorChar +" regular:, " +newTerm.RawContent +", "+newTerm.isNegative);
             GameObject newTermNode = new GameObject(name+operatorChar+newTerm.name);
             newTermNode.AddComponent<MathExpression>();
             newTermNode.transform.SetParent(transform.parent);
@@ -745,21 +746,8 @@ public class MathExpression : DragAndDrop
             NewNodeMath.MergeSameOperationInTerms();
             NewNodeMath.CancelAllSameTerms();
         }
+    }
     
-        // MathExpression Root = ParentTerm == null ? this : ParentTerm;
-        // while (Root !=null && Root.ParentTerm != null) Root = Root.ParentTerm;
-        // StartCoroutine(Root.RenderExpression());
-        //CombineSameOperationInTerms();
-    }
-
-    public MathExpression CreateCopy(MathExpression newTerm)
-    {
-        GameObject newTermCopy = new GameObject(newTerm.name+"(clone)");
-        newTermCopy.AddComponent<MathExpression>();
-        newTermCopy.GetComponent<MathExpression>().InitializebyString(newTerm.RawContent);
-        newTermCopy.GetComponent<MathExpression>().isNegative = newTerm.isNegative;
-        return newTermCopy.GetComponent<MathExpression>();
-    }
     public void MergeSameOperationInTerms()
     {
         if (MathOperator.Length == 0) return;
@@ -799,13 +787,11 @@ public class MathExpression : DragAndDrop
                 //     inverse = !inverse;
                 // }
                 mergeOperators = mergeOperators.Insert(curr+1, InverseOperationString(Terms[i].MathOperator,inverse));
-                Debug.Log(inverse+"|"+mergeOperators+",1");
                 inverse = Terms[i].isNegative && OpPriority == 1;
                 mergeOperators = mergeOperators.Substring(0, curr) +
                                  InverseOperationString(
                                      mergeOperators.Substring(curr, Terms[i].MathOperator.Length + 1), inverse) +
                                  mergeOperators.Substring(curr + Terms[i].MathOperator.Length + 1);
-                Debug.Log(inverse+"|"+mergeOperators+",2");
                 for (int j = 0; j < Terms[i].Terms.Length; j++)
                 {
                     newTerms[curr] = Terms[i].Terms[j];
@@ -818,7 +804,6 @@ public class MathExpression : DragAndDrop
                 curr++;
             }
         }
-        Debug.Log(endNegative+"|"+totalTermNum+"|"+mergeOperators);
         InitializebyValues(mergeOperators.Substring(1), newTerms, ParentTerm, ParentIndex);
         if(OpPriority == 2)isNegative ^= endNegative;
         if (mergeOperators[0] == '-') Terms[0].isNegative = !Terms[0].isNegative;
@@ -831,6 +816,308 @@ public class MathExpression : DragAndDrop
         //StartCoroutine(RenderExpression());
     }
 
+    
+    public void CancelAllSameTerms()
+    {
+        if (MathOperator.Length == 0) return;
+        if (MathOperator == "=")
+        {
+            Terms[0].CancelAllSameTerms();
+            Terms[1].CancelAllSameTerms();
+            StartCoroutine(RenderExpression());
+            return;
+        }
+
+        char PositiveOperator = OperationPriority[MathOperator[0].ToString()] == 1 ? '+' : '*';
+        List<int> CancelTerms = new List<int>();
+        Dictionary<string,int> ExistTerms = new Dictionary<string,int>();
+        string tmpOpString;
+        bool cancelAllTerms = false;
+        string raw = Terms[0].RawContent;
+        // if (raw == "0" && PositiveOperator == '*')
+        // {
+        //     cancelAllTerms = true;
+        // }
+        // else if ( (raw == "1" && PositiveOperator == '*') || (raw == "0" && PositiveOperator == '+'))
+        // {
+        //     CancelTerms.Add(0);
+        // }
+        tmpOpString = PositiveOperator + MathOperator;
+        bool EndNegative = false;
+        for (int i = 0; i < Terms.Length; i++)
+        {
+            raw = Terms[i].RawContent;
+            if (Terms[i].isNegative)
+            {
+                if(PositiveOperator == '+')
+                    tmpOpString = tmpOpString.Substring(0, i) 
+                              + InverseOperationChar(tmpOpString[i], true)
+                              + tmpOpString.Substring(i + 1);
+            }
+            if (raw == "0" && PositiveOperator == '*')
+            {
+                cancelAllTerms = true;
+                break;
+            }
+            if ( (raw == "1" && PositiveOperator == '*') || (raw == "0" && PositiveOperator == '+'))
+            {  
+                CancelTerms.Add(i);
+            }
+            else if (ExistTerms.Keys.Contains(raw))
+            {
+                if (tmpOpString[i] != tmpOpString[ExistTerms[raw]])
+                {
+                    CancelTerms.Add(ExistTerms[raw]);
+                    CancelTerms.Add(i);
+                    ExistTerms.Remove(raw);
+                }
+            }
+            else
+            {
+                ExistTerms.Add(raw,i);
+            }
+        }
+        for (int i = 0; i < Terms.Length; i++)
+        {
+            if (Terms[i].isNegative)
+            {
+                if (PositiveOperator == '+') Terms[i].isNegative = false;
+            }
+        }
+        if (cancelAllTerms)
+        {
+            InitializebyString("0",ParentTerm,ParentIndex);
+            return;
+        }
+        
+        MathExpression[] newTerms = new MathExpression[Terms.Length-CancelTerms.Count];
+        //Debug.Log(tmpOpString + "|" + RawContent);
+        int curr = 0;
+        for (int i = 0; i < Terms.Length; i++)
+        {
+            if (CancelTerms.Contains(i))
+            {
+                EndNegative ^= Terms[i].isNegative;
+                tmpOpString = tmpOpString.Remove(curr,1);
+                continue;
+            }
+            newTerms[curr] = Terms[i];
+            curr++;
+        }
+        if (tmpOpString.Length > 0)
+        {
+            if (tmpOpString[0] == '-')
+            {
+                if (tmpOpString.Contains('+'))
+                {
+                    int switchTerm = tmpOpString.IndexOf('+');
+                    tmpOpString = '+' + tmpOpString.Substring(1, switchTerm-1)+'-'+ tmpOpString.Substring(switchTerm+1);
+                    MathExpression tmp = newTerms[0];
+                    newTerms[0] = newTerms[switchTerm];
+                    newTerms[switchTerm] = tmp;
+                }
+                else
+                {
+                    tmpOpString = '+' + tmpOpString.Substring(1);
+                    newTerms[0].isNegative = !newTerms[0].isNegative;
+                }
+            }
+            if (tmpOpString[0] == '/')
+            {
+                if (tmpOpString.Contains('*'))
+                {
+                    int switchTerm = tmpOpString.IndexOf('*');
+                    tmpOpString = '*' + tmpOpString.Substring(1, switchTerm-1)+'/'+ tmpOpString.Substring(switchTerm+1);
+                    MathExpression tmp = newTerms[0];
+                    newTerms[0] = newTerms[switchTerm];
+                    newTerms[switchTerm] = tmp;
+                }
+                else
+                {
+                    tmpOpString = '*' + tmpOpString;
+                    GameObject newTerm = new GameObject("1");
+                    newTerm.AddComponent<MathExpression>();
+                    newTerm.GetComponent<MathExpression>().InitializebyString("1");
+                    MathExpression[] tmpTerms = new MathExpression[newTerms.Length];
+                    newTerms.CopyTo(tmpTerms,0);
+                    newTerms = new MathExpression[tmpTerms.Length+1];
+                    newTerms[0]=newTerm.GetComponent<MathExpression>();
+                    tmpTerms.CopyTo(newTerms,1);
+                }
+            }
+        }
+        if (newTerms.Length == 0)
+        {
+            InitializebyString(OperationPriority[PositiveOperator.ToString()] == 1 ? "0" : "1",ParentTerm,ParentIndex);
+        }
+        else if (newTerms.Length == 1)
+        {
+            if (ParentTerm != null)
+            {
+                ParentTerm.Terms[ParentIndex] = newTerms[0];
+                newTerms[0].ParentTerm = ParentTerm;
+                newTerms[0].ParentIndex = ParentIndex;
+            }
+            newTerms[0].transform.SetParent(transform.parent);
+            newTerms[0].isNegative = isNegative ^ EndNegative;
+        }
+        else
+        {
+            InitializebyValues(tmpOpString.Substring(1),newTerms,ParentTerm,ParentIndex);
+        }
+        if (PositiveOperator == '*') isNegative ^= EndNegative;
+    }
+
+    public void ExpandRegularOperationTerm(int AddTerm, int MultiplyTerm)
+    {
+        if (Terms.Length > AddTerm && Terms.Length > MultiplyTerm && AddTerm != MultiplyTerm)
+        {
+            if (OperationPriority[MathOperator[0].ToString()] == 1)
+            {
+                Debug.Log("plus, cannot expand");
+                return;
+            }
+            
+            if (!Terms[AddTerm].MathOperator.Contains('+') && !Terms[AddTerm].MathOperator.Contains('-'))
+            {
+                Debug.Log("AddTerm is not plus, cannot expand" + Terms[AddTerm].MathOperator);
+                return;
+            }
+            string tmpOP = '*' + MathOperator;
+            foreach (var childTerm in Terms[AddTerm].Terms)
+            {
+                childTerm.addRegularOperation(CreateCopy(Terms[MultiplyTerm]),tmpOP[AddTerm] == tmpOP[MultiplyTerm]?'*':'/');
+            }
+            addRegularOperation(CreateCopy(Terms[MultiplyTerm]),InverseOperationChar(tmpOP[MultiplyTerm],true));
+            MathExpression root = this;
+            while (root.ParentTerm != null)
+            {
+                root = root.ParentTerm;
+            }
+            root.StartRenderExpression();
+        }
+    }
+    public void CombineLikeTerms(MathExpression LikeTerm){
+        
+    }
+    public override void OnDrop(PointerEventData eventData)
+    {
+        base.OnDrop(eventData);
+        //Debug.Log(eventData.pointerDrag.name);
+        if (eventData.pointerDrag != null)
+        {
+            GameObject dragObject = eventData.pointerDrag;
+            if (dragObject.GetComponent<MathExpression>() != null)
+            {
+                MathExpression termToBeOperated = dragObject.GetComponent<MathExpression>();
+                MathExpression termDropOn = this;
+                while (termDropOn.ParentTerm != null)
+                {
+                    if (termDropOn.ParentTerm.MathOperator == "=") break;
+                    if (termDropOn.ParentTerm == termToBeOperated.ParentTerm || termToBeOperated.ParentTerm == termDropOn) break;
+                    termDropOn = termDropOn.ParentTerm;
+                }
+
+                if (termDropOn == termToBeOperated || termDropOn == termToBeOperated.ParentTerm) return;
+                if (termDropOn.ParentTerm == termToBeOperated.ParentTerm && termDropOn.ParentTerm.MathOperator != "=")
+                {
+                    termDropOn.ParentTerm.ExpandRegularOperationTerm(termDropOn.ParentIndex,termToBeOperated.ParentIndex);
+                    return;
+                }
+                if (termToBeOperated.ParentTerm.MathOperator != "=")
+                {
+                    if (termToBeOperated.ParentTerm.ParentTerm != null &&
+                        termToBeOperated.ParentTerm.ParentTerm.MathOperator == "=")
+                    {
+                        if (termDropOn.ParentTerm.MathOperator == "=")
+                        {
+                            MathExpression Eq = termToBeOperated.ParentTerm;
+                            bool inverse = true;
+                            if(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1) 
+                                if(termToBeOperated.ParentTerm.isNegative) inverse = false;
+                            foreach (var childterm in Eq.Terms)
+                            {
+                                if (childterm.Terms != null)
+                                {
+                                    foreach (var term in childterm.Terms)
+                                    {
+                                        term.isDraggable = false;
+                                    }
+                                }
+                                else childterm.isDraggable = false;
+                            }
+                            if (termToBeOperated.ParentIndex == 0)
+                            {
+                                termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
+                                    InverseOperationChar(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1 ? '-' : '/',
+                                        !inverse));
+                            }
+                            else
+                            {
+                                termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
+                                    InverseOperationChar(termToBeOperated.ParentTerm.MathOperator[termToBeOperated.ParentIndex - 1],
+                                        inverse));
+                            }
+                            foreach (var childterm in Eq.Terms)
+                            {
+                                if (childterm.Terms != null)
+                                {
+                                    foreach (var term in childterm.Terms)
+                                    {
+                                        term.isDraggable = true;
+                                    }
+                                }
+                                else childterm.isDraggable = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    MathExpression Eq = termToBeOperated.ParentTerm;
+                    foreach (var childterm in Eq.Terms)
+                    {
+                        if (childterm.Terms != null)
+                        {
+                            foreach (var term in childterm.Terms)
+                            {
+                                term.isDraggable = false;
+                            }
+                        }
+                        else childterm.isDraggable = false;
+                    }
+                    Eq.addRegularOperation(termToBeOperated, Random.Range(0,1f)>0.5f?'-':'/');
+                    foreach (var childterm in Eq.Terms)
+                    {
+                        if (childterm.Terms != null)
+                        {
+                            foreach (var term in childterm.Terms)
+                            {
+                                term.isDraggable = true;
+                            }
+                        }
+                        else childterm.isDraggable = true;
+                    }
+                }
+            }
+        }
+    }
+    void CreateChildTerm(string childName, int index, string content)
+    {
+        GameObject newTerm = new GameObject(childName);
+        newTerm.AddComponent<MathExpression>();
+        newTerm.transform.SetParent(transform);
+        Terms[index] = newTerm.GetComponent<MathExpression>();
+        Terms[index].InitializebyString(content, this, index);
+    }
+    public MathExpression CreateCopy(MathExpression newTerm)
+    {
+        // GameObject newTermCopy = new GameObject(newTerm.name+"(clone)");
+        GameObject newTermCopy = Instantiate(newTerm.gameObject);
+        newTermCopy.GetComponent<MathExpression>().InitializebyString(newTerm.RawContent);
+        newTermCopy.GetComponent<MathExpression>().isNegative = newTerm.isNegative;
+        return newTermCopy.GetComponent<MathExpression>();
+    }
     string InverseOperationString(string OperatorString, bool inverse = false)
     {
         if (!inverse) return OperatorString;
@@ -877,251 +1164,66 @@ public class MathExpression : DragAndDrop
         }
         return '+';
     }
-    public void CancelAllSameTerms()
-    {
-        if (MathOperator.Length == 0) return;
-        if (MathOperator == "=")
-        {
-            Terms[0].CancelAllSameTerms();
-            Terms[1].CancelAllSameTerms();
-            StartCoroutine(RenderExpression());
-            return;
-        }
 
-        char PositiveOperator = OperationPriority[MathOperator[0].ToString()] == 1 ? '+' : '*';
-        List<int> CancelTerms = new List<int>();
-        Dictionary<string,int> ExistTerms = new Dictionary<string,int>();
-        string tmpOpString;
-        bool cancelAllTerms = false;
-        string raw = Terms[0].RawContent;
-        // if (raw == "0" && PositiveOperator == '*')
-        // {
-        //     cancelAllTerms = true;
-        // }
-        // else if ( (raw == "1" && PositiveOperator == '*') || (raw == "0" && PositiveOperator == '+'))
-        // {
-        //     CancelTerms.Add(0);
-        // }
-        tmpOpString = PositiveOperator + MathOperator;
-        
-        
-        
-        Debug.Log(tmpOpString +"| Start" );
-        bool EndNegative = false;
-        for (int i = 0; i < Terms.Length; i++)
+    public void compare()
+    {
+        Terms[0].IsTermEqualTo(Terms[1]);
+    }
+    bool IsTermEqualTo(MathExpression termToBeCompared, bool ParentNegative = false)
+    {
+        //Debug.Log("Comparing: "+termToBeCompared.RawContent+","+RawContent+","+ParentNegative);
+        if (MathOperator.Length != termToBeCompared.MathOperator.Length) return false;
+        if (MathOperator.Length == 0)
+            return RawContent == termToBeCompared.RawContent && true^isNegative^ParentNegative^termToBeCompared.isNegative;
+        bool EqualFlag = true;
+        List<int> UsedTerms = new List<int>();
+        bool PlusFlag = OperationPriority[MathOperator[0].ToString()] == 1;
+        bool FoundMatch = false;
+        bool PN = ParentNegative;
+        for (int i = 0; i < termToBeCompared.Terms.Length; i++)
         {
-            raw = Terms[i].RawContent;
-            if (Terms[i].isNegative)
+            FoundMatch = false;
+            for (int j = 0; j < Terms.Length; j++)
             {
-                EndNegative = !EndNegative;
-                //Debug.Log(Terms[i].name+" is neg, "+EndNegative);
-                if(PositiveOperator == '+')
-                    tmpOpString = tmpOpString.Substring(0, i) 
-                              + InverseOperationChar(tmpOpString[i], true)
-                              + tmpOpString.Substring(i + 1);
+                if (PlusFlag)
+                {
+                    PN = (j == 0? '+':MathOperator[j-1])!=(i == 0? '+':termToBeCompared.MathOperator[i-1]) ^isNegative^termToBeCompared.isNegative^ParentNegative ;
+                    if (!UsedTerms.Contains(j) && Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],PN))
+                    {
+                        UsedTerms.Add(j);
+                        FoundMatch = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (!UsedTerms.Contains(j) && (j == 0? '*':MathOperator[j-1])==(i == 0? '*':termToBeCompared.MathOperator[i-1]))
+                    {
+                        if(Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],true))
+                        {
+                            UsedTerms.Add(j);
+                            FoundMatch = true;
+                            ParentNegative ^= true;
+                            break;
+                        }
+                        if(Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],false))
+                        {
+                            UsedTerms.Add(j);
+                            FoundMatch = true;
+                            break;
+                        }
+                    }
+                }
             }
-            if (raw == "0" && PositiveOperator == '*')
+            if (!FoundMatch)
             {
-                cancelAllTerms = true;
+                EqualFlag = false;
                 break;
             }
-            else if ( (raw == "1" && PositiveOperator == '*') || (raw == "0" && PositiveOperator == '+'))
-            {
-                CancelTerms.Add(i);
-            }
-            else if (ExistTerms.Keys.Contains(raw))
-            {
-                if (tmpOpString[i] != tmpOpString[ExistTerms[raw]])
-                {
-                    CancelTerms.Add(ExistTerms[raw]);
-                    CancelTerms.Add(i);
-                    ExistTerms.Remove(raw);
-                }
-            }
-            else
-            {
-                ExistTerms.Add(raw,i);
-            }
-        }
-        Debug.Log(tmpOpString + "|AF");
-        for (int i = 0; i < Terms.Length; i++)
-        {
-            if (Terms[i].isNegative)
-            {
-                if (PositiveOperator == '+') Terms[i].isNegative = false;
-                // tmpOpString = tmpOpString.Substring(0, i) 
-                //               + InverseOperationChar(tmpOpString[i], true)
-                //               + tmpOpString.Substring(i + 1);
-            }
-        }
-        //Debug.Log(name+"|"+isNegative);
-        if (cancelAllTerms)
-        {
-            InitializebyString("0",ParentTerm,ParentIndex);
-            return;
-        }
-        //if (CancelTerms.Count == 0) return;
-        
-        MathExpression[] newTerms = new MathExpression[Terms.Length-CancelTerms.Count];
-        //Debug.Log(tmpOpString + "|" + RawContent);
-        int curr = 0;
-        for (int i = 0; i < Terms.Length; i++)
-        {
-            if (CancelTerms.Contains(i))
-            {
-                tmpOpString = tmpOpString.Remove(curr,1);
-                continue;
-            }
-            newTerms[curr] = Terms[i];
-            curr++;
-        }
-        //Debug.Log(tmpOpString +"|" + newTerms.Length);
-        if (tmpOpString.Length > 0)
-        {
-            if (tmpOpString[0] == '-')
-            {
-                if (tmpOpString.Contains('+'))
-                {
-                    int switchTerm = tmpOpString.IndexOf('+');
-                    tmpOpString = '+' + tmpOpString.Substring(1, switchTerm-1)+'-'+ tmpOpString.Substring(switchTerm+1);
-                    MathExpression tmp = newTerms[0];
-                    newTerms[0] = newTerms[switchTerm];
-                    newTerms[switchTerm] = tmp;
-                }
-                else
-                {
-                    tmpOpString = '+' + tmpOpString.Substring(1);
-                    newTerms[0].isNegative = !newTerms[0].isNegative;
-                }
-            }
-            if (tmpOpString[0] == '/')
-            {
-                if (tmpOpString.Contains('*'))
-                {
-                    int switchTerm = tmpOpString.IndexOf('*');
-                    tmpOpString = '*' + tmpOpString.Substring(1, switchTerm-1)+'/'+ tmpOpString.Substring(switchTerm+1);
-                    MathExpression tmp = newTerms[0];
-                    newTerms[0] = newTerms[switchTerm];
-                    newTerms[switchTerm] = tmp;
-                }
-                else
-                {
-                    tmpOpString = '*' + tmpOpString;
-                    GameObject newTerm = new GameObject("1");
-                    newTerm.AddComponent<MathExpression>();
-                    newTerm.GetComponent<MathExpression>().InitializebyString("1");
-                    MathExpression[] tmpTerms = new MathExpression[newTerms.Length];
-                    newTerms.CopyTo(tmpTerms,0);
-                    newTerms = new MathExpression[tmpTerms.Length+1];
-                    newTerms[0]=newTerm.GetComponent<MathExpression>();
-                    tmpTerms.CopyTo(newTerms,1);
-                }
-            }
         }
 
-        bool NowNegative = isNegative;
-        Debug.Log(tmpOpString +"|ok");
-        if (newTerms.Length == 0)
-        {
-            InitializebyString(OperationPriority[PositiveOperator.ToString()] == 1 ? "0" : "1",ParentTerm,ParentIndex);
-        }
-        else if (newTerms.Length == 1)
-        {
-            if (ParentTerm != null)
-            {
-                ParentTerm.Terms[ParentIndex] = newTerms[0];
-                newTerms[0].ParentTerm = ParentTerm;
-                newTerms[0].ParentIndex = ParentIndex;
-            }
-            newTerms[0].transform.SetParent(transform.parent);
-        }
-        else
-        {
-            InitializebyValues(tmpOpString.Substring(1),newTerms,ParentTerm,ParentIndex);
-        }
-        if (PositiveOperator == '*') isNegative = EndNegative ? !NowNegative:NowNegative;
+        if (!PlusFlag && ParentNegative) EqualFlag = false;
+        Debug.Log(name+","+termToBeCompared.name+", equal: "+EqualFlag + ". PN/pn/PF: "+PN +","+ParentNegative+".."+":"+PlusFlag);
+        return EqualFlag;
     }
-    
-    public override void OnDrop(PointerEventData eventData)
-    {
-        base.OnDrop(eventData);
-        Debug.Log(eventData.pointerDrag.name);
-        if (eventData.pointerDrag != null)
-        {
-            GameObject dragObject = eventData.pointerDrag;
-            if (dragObject.GetComponent<MathExpression>() != null)
-            {
-                MathExpression tmpTerm = dragObject.GetComponent<MathExpression>();
-                MathExpression ToBeAdded = this;
-                while (ToBeAdded.ParentTerm != null && ToBeAdded.ParentTerm.MathOperator != "=")
-                {
-                    ToBeAdded = ToBeAdded.ParentTerm;
-                }
-
-                if (ToBeAdded == tmpTerm || ToBeAdded == tmpTerm.ParentTerm) return;
-                if (tmpTerm.ParentTerm.MathOperator != "=")
-                {
-                    if (tmpTerm.ParentTerm.ParentTerm != null &&
-                        tmpTerm.ParentTerm.ParentTerm.MathOperator == "=")
-                    {
-                        if (ToBeAdded.ParentTerm.MathOperator == "=")
-                        {
-                            Debug.Log(ToBeAdded.name + "," + tmpTerm.ParentTerm.name + "," +
-                                      tmpTerm.ParentTerm.MathOperator);
-                            foreach (var childterm in ToBeAdded.ParentTerm.Terms)
-                            {
-                                if (childterm.Terms != null)
-                                {
-                                    foreach (var term in childterm.Terms)
-                                    {
-                                        term.isDraggable = false;
-                                    }
-                                }
-                                else childterm.isDraggable = false;
-                            }
-
-                            bool inverse = true;
-                            if(OperationPriority[tmpTerm.ParentTerm.MathOperator[0].ToString()] == 1) 
-                                if(tmpTerm.ParentTerm.isNegative) inverse = false;
-                            if (tmpTerm.ParentIndex == 0)
-                            {
-                                ToBeAdded.ParentTerm.addRegularOperation(tmpTerm,
-                                    InverseOperationChar(OperationPriority[tmpTerm.ParentTerm.MathOperator[0].ToString()] == 1 ? '-' : '/',
-                                        inverse));
-                            }
-                            else
-                                ToBeAdded.ParentTerm.addRegularOperation(tmpTerm,
-                                    InverseOperationChar(tmpTerm.ParentTerm.MathOperator[tmpTerm.ParentIndex - 1],
-                                        inverse));
-                        }
-                    }
-                }
-                else
-                {
-                    MathExpression Eq = tmpTerm.ParentTerm;
-                    Eq.addRegularOperation(tmpTerm, Random.Range(0,1f)>0.5f?'-':'/');
-                    foreach (var childterm in Eq.Terms)
-                    {
-                        if (childterm.Terms != null)
-                        {
-                            foreach (var term in childterm.Terms)
-                            {
-                                term.isDraggable = false;
-                            }
-                        }
-                        else childterm.isDraggable = false;
-                    }
-                }
-            }
-        }
-    }
-    void CreateChildTerm(string childName, int index, string content)
-    {
-        GameObject newTerm = new GameObject(childName);
-        newTerm.AddComponent<MathExpression>();
-        newTerm.transform.SetParent(transform);
-        Terms[index] = newTerm.GetComponent<MathExpression>();
-        Terms[index].InitializebyString(content, this, index);
-    }
-
 }
