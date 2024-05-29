@@ -434,7 +434,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1684315576}
         m_TargetAssemblyTypeName: MathExpression, Assembly-CSharp
-        m_MethodName: CancelAllSameTerms
+        m_MethodName: StartRenderExpression
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -773,13 +773,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isDraggable: 0
-  Enclosed: None
-  MathOperator: 
-  RawContent: 
-  isNegative: 0
+  <Enclosed>k__BackingField: None
+  <MathOperator>k__BackingField: 
+  <EncloseSymbols>k__BackingField: []
+  <NegativeSymbol>k__BackingField: []
+  <OperatorObjects>k__BackingField: []
+  <RawContent>k__BackingField: 
+  <isNegative>k__BackingField: 0
   InitialRawContent: c
-  Terms: []
-  ParentTerm: {fileID: 0}
+  <Terms>k__BackingField: []
+  <ParentTerm>k__BackingField: {fileID: 0}
+  <ParentIndex>k__BackingField: 0
+  <ContentText>k__BackingField: {fileID: 0}
 --- !u!1 &1290264367
 GameObject:
   m_ObjectHideFlags: 0
@@ -1099,13 +1104,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isDraggable: 0
-  Enclosed: None
-  MathOperator: 
-  RawContent: 
-  isNegative: 0
-  InitialRawContent: -(((-b)*(-c)/b))=b/(-b)*c
-  Terms: []
-  ParentTerm: {fileID: 0}
+  <Enclosed>k__BackingField: None
+  <MathOperator>k__BackingField: 
+  <EncloseSymbols>k__BackingField: []
+  <NegativeSymbol>k__BackingField: []
+  <OperatorObjects>k__BackingField: []
+  <RawContent>k__BackingField: 
+  <isNegative>k__BackingField: 0
+  InitialRawContent: sinA/(1+cosA)=sin2B/(1+cos2B)
+  <Terms>k__BackingField: []
+  <ParentTerm>k__BackingField: {fileID: 0}
+  <ParentIndex>k__BackingField: 0
+  <ContentText>k__BackingField: {fileID: 0}
 --- !u!1 &1857034997
 GameObject:
   m_ObjectHideFlags: 0
