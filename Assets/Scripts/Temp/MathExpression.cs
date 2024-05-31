@@ -128,10 +128,12 @@ public class MathExpression : DragAndDrop
             Terms[i].ParentTerm = this;
             Terms[i].ParentIndex = i;
             Terms[i].transform.SetParent(transform);
+            //Debug.Log(Terms[i].name+Terms[i].RawContent+Terms[i].ParentTerm.name);
         }
         Terms.Last().ParentTerm = this;
         Terms.Last().ParentIndex = Terms.Length - 1;
         Terms.Last().transform.SetParent(transform);
+        //Debug.Log(Terms.Last().name+Terms.Last().RawContent+Terms.Last().ParentTerm.name);
         ParentTerm = parent;
         ParentIndex = parentIndex;
         UpdateRawContent();
@@ -144,6 +146,7 @@ public class MathExpression : DragAndDrop
         ParentTerm = parent;
         ParentIndex = parentIndex;
         MathOperator = "";
+        Terms = null;
         // if (Terms != null)
         // {
         //     for (int i = 0; i < Terms.Length; i++)
@@ -858,7 +861,6 @@ public class MathExpression : DragAndDrop
                                 CancelTerms.Add(t);
                                 CancelTerms.Add(i);
                                 ExistTerms.Remove(t);
-                                EndNegative = !EndNegative;
                                 EqualFound = true;
                                 break;
                             }
@@ -883,13 +885,8 @@ public class MathExpression : DragAndDrop
                 }
             }
         }
-        for (int i = 0; i < Terms.Length; i++)
-        {
-            if (Terms[i].isNegative)
-            {
-                if (PositiveOperator == '+') Terms[i].isNegative = false;
-            }
-        }
+
+        
         if (cancelAllTerms)
         {
             InitializebyString("0",ParentTerm,ParentIndex);
@@ -965,7 +962,7 @@ public class MathExpression : DragAndDrop
                 newTerms[0].ParentIndex = ParentIndex;
             }
             newTerms[0].transform.SetParent(transform.parent);
-            newTerms[0].isNegative = isNegative ^ EndNegative;
+            if(PositiveOperator == '*')newTerms[0].isNegative = isNegative ^ EndNegative;
         }
         else
         {
@@ -1015,94 +1012,119 @@ public class MathExpression : DragAndDrop
             GameObject dragObject = eventData.pointerDrag;
             if (dragObject.GetComponent<MathExpression>() != null)
             {
+                
                 MathExpression termToBeOperated = dragObject.GetComponent<MathExpression>();
                 MathExpression termDropOn = this;
-                while (termDropOn.ParentTerm != null)
+                bool PlusFlag = MathOperator.Length == 0 || OperationPriority[MathOperator[0].ToString()] == 1;
+                if (termToBeOperated.MathOperator == "=")
                 {
-                    if (termDropOn.ParentTerm.MathOperator == "=") break;
-                    if (termDropOn.ParentTerm == termToBeOperated.ParentTerm || termToBeOperated.ParentTerm == termDropOn) break;
-                    termDropOn = termDropOn.ParentTerm;
-                }
-
-                if (termDropOn == termToBeOperated || termDropOn == termToBeOperated.ParentTerm) return;
-                if (termDropOn.ParentTerm == termToBeOperated.ParentTerm && termDropOn.ParentTerm.MathOperator != "=")
-                {
-                    termDropOn.ParentTerm.ExpandRegularOperationTerm(termDropOn.ParentIndex,termToBeOperated.ParentIndex);
-                    return;
-                }
-                if (termToBeOperated.ParentTerm.MathOperator != "=")
-                {
-                    if (termToBeOperated.ParentTerm.ParentTerm != null &&
-                        termToBeOperated.ParentTerm.ParentTerm.MathOperator == "=")
+                    int ContainFlag = termDropOn.IsTermContaining(termToBeOperated.Terms[0]);
+                    while (ContainFlag==0 && termDropOn.ParentTerm!=null)
                     {
-                        if (termDropOn.ParentTerm.MathOperator == "=")
-                        {
-                            MathExpression Eq = termToBeOperated.ParentTerm;
-                            bool inverse = true;
-                            if(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1) 
-                                if(termToBeOperated.ParentTerm.isNegative) inverse = false;
-                            foreach (var childterm in Eq.Terms)
-                            {
-                                if (childterm.Terms != null)
-                                {
-                                    foreach (var term in childterm.Terms)
-                                    {
-                                        term.isDraggable = false;
-                                    }
-                                }
-                                else childterm.isDraggable = false;
-                            }
-                            if (termToBeOperated.ParentIndex == 0)
-                            {
-                                termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
-                                    InverseOperationChar(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1 ? '-' : '/',
-                                        !inverse));
-                            }
-                            else
-                            {
-                                termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
-                                    InverseOperationChar(termToBeOperated.ParentTerm.MathOperator[termToBeOperated.ParentIndex - 1],
-                                        inverse));
-                            }
-                            foreach (var childterm in Eq.Terms)
-                            {
-                                if (childterm.Terms != null)
-                                {
-                                    foreach (var term in childterm.Terms)
-                                    {
-                                        term.isDraggable = true;
-                                    }
-                                }
-                                else childterm.isDraggable = true;
-                            }
-                        }
+                        termDropOn = termDropOn.ParentTerm;
+                        ContainFlag = termDropOn.IsTermContaining(termToBeOperated.Terms[0]);
+                    }
+
+                    
+                    if(ContainFlag == 0)
+                    {
+                        Debug.Log("Not Containing, Apply formula failed");
+                        return;
+                    }
+
+                    if (ContainFlag == 1)
+                    {
+                        
                     }
                 }
                 else
                 {
-                    MathExpression Eq = termToBeOperated.ParentTerm;
-                    foreach (var childterm in Eq.Terms)
+                    while (termDropOn.ParentTerm != null)
                     {
-                        if (childterm.Terms != null)
-                        {
-                            foreach (var term in childterm.Terms)
-                            {
-                                term.isDraggable = false;
-                            }
-                        }
-                        else childterm.isDraggable = false;
+                        if (termDropOn.ParentTerm.MathOperator == "=") break;
+                        if (termDropOn.ParentTerm == termToBeOperated.ParentTerm || termToBeOperated.ParentTerm == termDropOn) break;
+                        termDropOn = termDropOn.ParentTerm;
                     }
-                    Eq.addRegularOperation(termToBeOperated, Random.Range(0,1f)>0.5f?'-':'/');
-                    foreach (var childterm in Eq.Terms)
+                    if (termDropOn == termToBeOperated || termDropOn == termToBeOperated.ParentTerm) return;
+                    if (termDropOn.ParentTerm == termToBeOperated.ParentTerm && termDropOn.ParentTerm.MathOperator != "=")
                     {
-                        if (childterm.Terms != null)
+                        termDropOn.ParentTerm.ExpandRegularOperationTerm(termDropOn.ParentIndex,termToBeOperated.ParentIndex);
+                        return;
+                    }
+                    if (termToBeOperated.ParentTerm.MathOperator != "=")
+                    {
+                        if (termToBeOperated.ParentTerm.ParentTerm != null &&
+                            termToBeOperated.ParentTerm.ParentTerm.MathOperator == "=")
                         {
-                            foreach (var term in childterm.Terms)
+                            if (termDropOn.ParentTerm.MathOperator == "=")
                             {
-                                term.isDraggable = true;
+                                MathExpression Eq = termToBeOperated.ParentTerm;
+                                bool inverse = true;
+                                if(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1) 
+                                    if(termToBeOperated.ParentTerm.isNegative) inverse = false;
+                                foreach (var childterm in Eq.Terms)
+                                {
+                                    if (childterm.Terms != null)
+                                    {
+                                        foreach (var term in childterm.Terms)
+                                        {
+                                            term.isDraggable = false;
+                                        }
+                                    }
+                                    else childterm.isDraggable = false;
+                                }
+                                if (termToBeOperated.ParentIndex == 0)
+                                {
+                                    termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
+                                        InverseOperationChar(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1 ? '-' : '/',
+                                            !inverse));
+                                }
+                                else
+                                {
+                                    termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
+                                        InverseOperationChar(termToBeOperated.ParentTerm.MathOperator[termToBeOperated.ParentIndex - 1],
+                                            inverse));
+                                }
+                                foreach (var childterm in Eq.Terms)
+                                {
+                                    if (childterm.Terms != null)
+                                    {
+                                        foreach (var term in childterm.Terms)
+                                        {
+                                            term.isDraggable = true;
+                                        }
+                                    }
+                                    else childterm.isDraggable = true;
+                                }
                             }
                         }
-                        else childterm.isDraggable = true;
+                    }
+                    else
+                    {
+                        MathExpression Eq = termToBeOperated.ParentTerm;
+                        foreach (var childterm in Eq.Terms)
+                        {
+                            if (childterm.Terms != null)
+                            {
+                                foreach (var term in childterm.Terms)
+                                {
+                                    term.isDraggable = false;
+                                }
+                            }
+                            else childterm.isDraggable = false;
+                        }
+                        Eq.addRegularOperation(termToBeOperated, Random.Range(0,1f)>0.5f?'-':'/');
+                        foreach (var childterm in Eq.Terms)
+                        {
+                            if (childterm.Terms != null)
+                            {
+                                foreach (var term in childterm.Terms)
+                                {
+                                    term.isDraggable = true;
+                                }
+                            }
+                            else childterm.isDraggable = true;
+                        }
                     }
                 }
             }
@@ -1118,8 +1140,9 @@ public class MathExpression : DragAndDrop
     }
     public MathExpression CreateCopy(MathExpression newTerm)
     {
-        // GameObject newTermCopy = new GameObject(newTerm.name+"(clone)");
-        GameObject newTermCopy = Instantiate(newTerm.gameObject);
+        GameObject newTermCopy = new GameObject(newTerm.RawContent+"(clone)");
+        //GameObject newTermCopy = Instantiate(newTerm.gameObject);
+        newTermCopy.AddComponent<MathExpression>();
         newTermCopy.GetComponent<MathExpression>().InitializebyString(newTerm.RawContent);
         newTermCopy.GetComponent<MathExpression>().isNegative = newTerm.isNegative;
         return newTermCopy.GetComponent<MathExpression>();
@@ -1170,12 +1193,7 @@ public class MathExpression : DragAndDrop
         }
         return '+';
     }
-
-    public void compare()
-    {
-        Terms[0].IsTermEqualTo(Terms[1]);
-    }
-    bool IsTermEqualTo(MathExpression termToBeCompared, bool ParentNegative = false)
+    bool IsTermEqualTo(MathExpression termToBeCompared, bool ParentNegative = false, bool inverseOP = false)
     {
         Debug.Log("Comparing: "+(termToBeCompared.isNegative?'-':'+')+termToBeCompared.RawContent+","+(isNegative?'-':'+')+RawContent+","+ParentNegative);
         if (MathOperator.Length != termToBeCompared.MathOperator.Length) return false;
@@ -1193,7 +1211,7 @@ public class MathExpression : DragAndDrop
             {
                 if (PlusFlag)
                 {
-                    PN = (j == 0? '+':MathOperator[j-1])!=(i == 0? '+':termToBeCompared.MathOperator[i-1]) ^isNegative^termToBeCompared.isNegative^ParentNegative ;
+                    PN = (j == 0? '+':MathOperator[j-1])!=(i == 0? '+':termToBeCompared.MathOperator[i-1]) ^isNegative^termToBeCompared.isNegative^ParentNegative^inverseOP ;
                     if (!UsedTerms.Contains(j) && Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],PN))
                     {
                         UsedTerms.Add(j);
@@ -1204,7 +1222,7 @@ public class MathExpression : DragAndDrop
                 }
                 else
                 {
-                    if (!UsedTerms.Contains(j) && (j == 0? '*':MathOperator[j-1])==(i == 0? '*':termToBeCompared.MathOperator[i-1]))
+                    if (!UsedTerms.Contains(j) && inverseOP^(j == 0? '*':MathOperator[j-1])==(i == 0? '*':termToBeCompared.MathOperator[i-1]))
                     {
                         if(Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],true))
                         {
@@ -1235,59 +1253,94 @@ public class MathExpression : DragAndDrop
         Debug.Log(RawContent+","+termToBeCompared.RawContent+", equal: "+EqualFlag + ". PN/pn/PF: "+PN +","+ParentNegative+".."+":"+PlusFlag);
         return EqualFlag;
     }
-    bool IsTermContaining(MathExpression termToBeCompared)
+
+    public void TryFind(MathExpression termToBeCompared)
+    {
+        if(MathOperator == "=")
+            Debug.Log(Terms[0].IsTermContaining(termToBeCompared)+" term 0; term 1 : "+Terms[1].IsTermContaining(termToBeCompared));
+    }
+    //0 = not found, 1 = found direct operation, -1 = found inverse operation
+    int IsTermContaining(MathExpression termToBeCompared)
     {
         //Debug.Log("Comparing: "+(termToBeCompared.isNegative?'-':'+')+termToBeCompared.RawContent+","+(isNegative?'-':'+')+RawContent+","+ParentNegative);
-        if (MathOperator.Length < termToBeCompared.MathOperator.Length) return false;
+        if (MathOperator.Length < termToBeCompared.MathOperator.Length) return 0;
         if (MathOperator.Length == 0)
-            return RawContent == termToBeCompared.RawContent && !isNegative^termToBeCompared.isNegative;
-        bool ContainFlag = true;
-        List<int> UsedTerms = new List<int>();
+            return RawContent == termToBeCompared.RawContent ?  (!isNegative^termToBeCompared.isNegative? 1 : -1 ): 0;
         bool PlusFlag = OperationPriority[MathOperator[0].ToString()] == 1;
-        bool FoundMatch = false;
-        bool PN = isNegative^termToBeCompared.isNegative;
-        for (int i = 0; i < termToBeCompared.Terms.Length; i++)
+        if (termToBeCompared.MathOperator.Length == 0)
         {
-            FoundMatch = false;
-            for (int j = 0; j < Terms.Length; j++)
+            for (int i = 0; i < Terms.Length; i++)
             {
                 if (PlusFlag)
                 {
-                    PN = (j == 0? '+':MathOperator[j-1])!=(i == 0? '+':termToBeCompared.MathOperator[i-1]) ^isNegative^termToBeCompared.isNegative ;
-                    if (!UsedTerms.Contains(j) && Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],PN))
-                    {
-                        UsedTerms.Add(j);
-                        //Debug.Log(Terms[j].RawContent +"="+termToBeCompared.Terms[i].RawContent+","+PN);
-                        FoundMatch = true;
-                        break;
-                    }
+                    if (Terms[i].IsTermEqualTo(termToBeCompared, false))
+                        return (i == 0 ? '+' : MathOperator[i]) == '+' ? 1 : -1;
+                    if (Terms[i].IsTermEqualTo(termToBeCompared, true))
+                        return (i == 0 ? '+' : MathOperator[i]) == '-' ? 1 : -1;
                 }
                 else
                 {
-                    if (!UsedTerms.Contains(j) && (j == 0? '*':MathOperator[j-1])==(i == 0? '*':termToBeCompared.MathOperator[i-1]))
+                    if (Terms[i].IsTermEqualTo(termToBeCompared, false))
+                        return (i == 0 ? '*' : MathOperator[i]) == '*' ? 1 : -1;
+                    if (Terms[i].IsTermEqualTo(termToBeCompared, true))
+                        return (i == 0 ? '*' : MathOperator[i]) == '*' ? 1 : -1;
+                }
+                
+            }
+            return 0;
+        }
+        int ContainFlag = 1;
+        List<int> DirectUsedTerms = new List<int>();
+        List<int> InverseUsedTerms = new List<int>();
+        bool DirectFoundMatch = false;
+        bool InverseFoundMatch = false;
+        bool DirectFlag = true;
+        bool InverseFlag = true;
+        bool PN = isNegative^termToBeCompared.isNegative;
+        if (PlusFlag)
+        {
+            for (int i = 0; i < termToBeCompared.Terms.Length; i++)
+            {
+                DirectFoundMatch = false;
+                InverseFoundMatch = false;
+                for (int j = 0; j < Terms.Length; j++)
+                {
+                    if (!DirectUsedTerms.Contains(j) && !DirectFoundMatch)
                     {
-                        if(Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],true))
+                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (i == 0 ? '+' : MathOperator[j-1]) == '+')
                         {
-                            UsedTerms.Add(j);
-                            //Debug.Log(Terms[j].RawContent +"="+termToBeCompared.Terms[i].RawContent+",T");
-                            FoundMatch = true;
-                            break;
+                            DirectUsedTerms.Add(j);
+                            DirectFoundMatch = true;
                         }
-                        if(Terms[j].IsTermEqualTo(termToBeCompared.Terms[i],false))
+                        else if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) && (i == 0 ? '+' : MathOperator[j-1]) == '-')
                         {
-                            UsedTerms.Add(j);
-                            FoundMatch = true;
-                            //Debug.Log(Terms[j].RawContent +"="+termToBeCompared.Terms[i].RawContent+",F");
-                            break;
+                            DirectUsedTerms.Add(j);
+                            DirectFoundMatch = true;
                         }
                     }
+                    if (!InverseUsedTerms.Contains(j) && !InverseFoundMatch)
+                    {
+                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) && (i == 0 ? '+' : MathOperator[j-1]) == '+')
+                        {
+                            InverseUsedTerms.Add(j);
+                            InverseFoundMatch = true;
+                        }
+                        else if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (i == 0 ? '+' : MathOperator[j-1]) == '-')
+                        {
+                            InverseUsedTerms.Add(j);
+                            InverseFoundMatch = true;
+                        }
+                    }
+                    if (InverseFoundMatch && DirectFoundMatch) break;
                 }
+                if (!InverseFoundMatch && !DirectFoundMatch) return 0;
             }
-            if (!FoundMatch)
-            {
-                ContainFlag = false;
-                break;
-            }
+            if (DirectUsedTerms.Count == termToBeCompared.Terms.Length) return 1;
+            if (InverseUsedTerms.Count == termToBeCompared.Terms.Length) return 1;
+        }
+        else
+        {
+            
         }
         Debug.Log(RawContent+","+termToBeCompared.RawContent+", Contains: "+ContainFlag + ". PN/PF: "+PN +",,,,,"+PlusFlag);
         return ContainFlag;
