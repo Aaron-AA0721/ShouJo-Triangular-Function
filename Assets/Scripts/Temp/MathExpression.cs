@@ -1305,6 +1305,7 @@ public class MathExpression : DragAndDrop
                 InverseFoundMatch = false;
                 for (int j = 0; j < Terms.Length; j++)
                 {
+                    //not finished yet
                     if (!DirectUsedTerms.Contains(j) && !DirectFoundMatch)
                     {
                         if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (i == 0 ? '+' : MathOperator[j-1]) == '+')
@@ -1333,16 +1334,50 @@ public class MathExpression : DragAndDrop
                     }
                     if (InverseFoundMatch && DirectFoundMatch) break;
                 }
-                if (!InverseFoundMatch && !DirectFoundMatch) return 0;
+                if (!InverseFoundMatch && !DirectFoundMatch) {
+                    ContainFlag = 0;
+                    break;
+                }
             }
-            if (DirectUsedTerms.Count == termToBeCompared.Terms.Length) return 1;
-            if (InverseUsedTerms.Count == termToBeCompared.Terms.Length) return 1;
+            if (DirectUsedTerms.Count == termToBeCompared.Terms.Length) ContainFlag = 1;
+            if (InverseUsedTerms.Count == termToBeCompared.Terms.Length) ContainFlag = -1;
         }
         else
         {
-            
+            for (int i = 0; i < termToBeCompared.Terms.Length; i++)
+            {
+                DirectFoundMatch = false;
+                InverseFoundMatch = false;
+                for (int j = 0; j < Terms.Length; j++)
+                {
+                    if (!DirectUsedTerms.Contains(j) && !DirectFoundMatch)
+                    {
+                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) || Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) )
+                        {
+                            if ((i == 0 ? '*' : MathOperator[j - 1]) == '*')
+                            {
+                                DirectUsedTerms.Add(j); 
+                                DirectFoundMatch = true;
+                            }
+                            else
+                            {
+                                InverseUsedTerms.Add(j);
+                                InverseFoundMatch = true;
+                            }
+                        }
+                    }
+                    
+                    if (InverseFoundMatch && DirectFoundMatch) break;
+                }
+                if (!InverseFoundMatch && !DirectFoundMatch) {
+                    ContainFlag = 0;
+                    break;
+                }
+            }
+            if (DirectUsedTerms.Count == termToBeCompared.Terms.Length) ContainFlag = 1;
+            if (InverseUsedTerms.Count == termToBeCompared.Terms.Length) ContainFlag = -1;
         }
-        Debug.Log(RawContent+","+termToBeCompared.RawContent+", Contains: "+ContainFlag + ". PN/PF: "+PN +",,,,,"+PlusFlag);
+        Debug.Log(RawContent+","+termToBeCompared.RawContent+", ContainFlag: "+ContainFlag + ". PN/PF: "+PN +",,,,,"+PlusFlag);
         return ContainFlag;
     }
 }
