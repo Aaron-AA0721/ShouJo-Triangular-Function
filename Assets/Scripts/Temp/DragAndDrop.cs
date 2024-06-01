@@ -10,7 +10,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     public RectTransform Rect { get; protected set; }
     private Vector2 InitialPos;
     public Image Render_Image { get; protected set; } = null;
-    public bool isDraggable  = false;
+    public bool isDraggable  = true;
     void Start()
     {
         Rect = GetComponent<RectTransform>();
@@ -30,6 +30,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         {
             Render_Image.raycastTarget = false;
             InitialPos = Rect.localPosition;
+            Rect.position = eventData.position + new Vector2(0,Rect.sizeDelta.y/2+10);
         }
         else return;
         //Debug.Log("OnBeginDrag, "+name);

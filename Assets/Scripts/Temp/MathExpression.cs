@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,8 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Random = UnityEngine.Random;
+
 public class MathExpression : DragAndDrop
 {
     public static Dictionary<string, int> OperationPriority = new Dictionary<string, int>()
@@ -374,17 +377,6 @@ public class MathExpression : DragAndDrop
                     0, 0);
                 Rect.sizeDelta = new Vector2(totalWidth + 40,
                     Mathf.Max(Terms[0].Rect.rect.height, Terms[1].Rect.rect.height) + 20);
-                foreach (var childterm in Terms)
-                {
-                    if (childterm.Terms != null)
-                    {
-                        foreach (var term in childterm.Terms)
-                        {
-                            term.isDraggable = true;
-                        }
-                    }
-                    else childterm.isDraggable = true;
-                }
             }
             else if (OperationPriority[MathOperator[0].ToString()] == 1)
             {
@@ -714,7 +706,7 @@ public class MathExpression : DragAndDrop
     {
         addRegularOperation(newTerm, '/');
     }
-    public void addRegularOperation(MathExpression newTerm, char operatorChar)
+    public void addRegularOperation(MathExpression newTerm, char operatorChar, bool notCancel = false)
     {
         if (MathOperator == "=")
         {
@@ -737,7 +729,7 @@ public class MathExpression : DragAndDrop
             if(ParentTerm != null) ParentTerm.Terms[ParentIndex] = NewNodeMath;
             NewNodeMath.InitializebyValues(operatorChar.ToString(),tmpTerms, ParentTerm, ParentIndex);
             NewNodeMath.MergeSameOperationInTerms();
-            NewNodeMath.CancelAllSameTerms();
+            if(!notCancel)NewNodeMath.CancelAllSameTerms();
         }
     }
     
@@ -970,7 +962,7 @@ public class MathExpression : DragAndDrop
         }
         if (PositiveOperator == '*') isNegative ^= EndNegative;
     }
-
+    
     public void ExpandRegularOperationTerm(int AddTerm, int MultiplyTerm)
     {
         if (Terms.Length > AddTerm && Terms.Length > MultiplyTerm && AddTerm != MultiplyTerm)
@@ -1003,6 +995,55 @@ public class MathExpression : DragAndDrop
     public void CombineLikeTerms(MathExpression LikeTerm){
         
     }
+
+    public void EquationSubstitude(MathExpression newEQ)
+    {
+        if (newEQ.MathOperator != "=")
+        {
+            Debug.LogError("Not a equation. Cannot Substitude");
+            return;
+        }
+        MathExpression origin = this;
+        int ContainFlag = origin.IsTermContaining(newEQ.Terms[0]);
+        while (ContainFlag==0 && origin.ParentTerm!=null)
+        {
+            origin = origin.ParentTerm;
+            ContainFlag = origin.IsTermContaining(newEQ.Terms[0]);
+        }
+        if(ContainFlag == 0)
+        {
+            Debug.Log("Not Containing, Equation Substitude failed");
+            return;
+        }
+        bool PlusFlag = origin.MathOperator.Length == 0 || OperationPriority[origin.MathOperator[0].ToString()] == 1;
+        MathExpression OP = origin.ParentTerm;
+        int OPIndex = origin.ParentIndex;
+        if (OP)
+        {
+            Debug.Log("start operation1, contailFlag = "+ContainFlag + ", origin = "+OP.Terms[OPIndex].RawContent+"|"+OP.Terms[OPIndex].name);
+            OP.Terms[OPIndex].addRegularOperation(CreateCopy(newEQ.Terms[0]),InverseOperationChar(PlusFlag?'+':'*',ContainFlag == 1),true);
+            Debug.Log("start operation2, contailFlag = "+ContainFlag + ", origin = "+OP.Terms[OPIndex].RawContent+"|"+OP.Terms[OPIndex].name);
+            OP.Terms[OPIndex].addRegularOperation(CreateCopy(newEQ.Terms[1]),InverseOperationChar(PlusFlag?'+':'*',ContainFlag == -1),true);
+            OP.Terms[OPIndex].CancelAllSameTerms();
+        }
+        else
+        {
+            
+        }
+        // if (origin.ParentTerm != null)
+        // {
+        //     origin.ParentTerm.MergeSameOperationInTerms();
+        //     origin.ParentTerm.CancelAllSameTerms();
+        // }
+        // origin.CancelAllSameTerms();
+        
+        while (origin.ParentTerm!=null)
+        {
+            origin = origin.ParentTerm;
+        }
+        origin.StartRenderExpression();
+    }
+
     public override void OnDrop(PointerEventData eventData)
     {
         base.OnDrop(eventData);
@@ -1012,39 +1053,24 @@ public class MathExpression : DragAndDrop
             GameObject dragObject = eventData.pointerDrag;
             if (dragObject.GetComponent<MathExpression>() != null)
             {
-                
                 MathExpression termToBeOperated = dragObject.GetComponent<MathExpression>();
                 MathExpression termDropOn = this;
-                bool PlusFlag = MathOperator.Length == 0 || OperationPriority[MathOperator[0].ToString()] == 1;
+                if (termDropOn == termToBeOperated) return;
+                bool PlusFlag;
                 if (termToBeOperated.MathOperator == "=")
                 {
-                    int ContainFlag = termDropOn.IsTermContaining(termToBeOperated.Terms[0]);
-                    while (ContainFlag==0 && termDropOn.ParentTerm!=null)
-                    {
-                        termDropOn = termDropOn.ParentTerm;
-                        ContainFlag = termDropOn.IsTermContaining(termToBeOperated.Terms[0]);
-                    }
-
-                    
-                    if(ContainFlag == 0)
-                    {
-                        Debug.Log("Not Containing, Apply formula failed");
-                        return;
-                    }
-
-                    if (ContainFlag == 1)
-                    {
-                        
-                    }
+                    termDropOn.EquationSubstitude(termToBeOperated);
                 }
                 else
                 {
+                    PlusFlag = MathOperator.Length == 0 || OperationPriority[MathOperator[0].ToString()] == 1;
                     while (termDropOn.ParentTerm != null)
                     {
                         if (termDropOn.ParentTerm.MathOperator == "=") break;
                         if (termDropOn.ParentTerm == termToBeOperated.ParentTerm || termToBeOperated.ParentTerm == termDropOn) break;
                         termDropOn = termDropOn.ParentTerm;
                     }
+                    if (termDropOn.ParentTerm == null) return;
                     if (termDropOn == termToBeOperated || termDropOn == termToBeOperated.ParentTerm) return;
                     if (termDropOn.ParentTerm == termToBeOperated.ParentTerm && termDropOn.ParentTerm.MathOperator != "=")
                     {
@@ -1062,17 +1088,7 @@ public class MathExpression : DragAndDrop
                                 bool inverse = true;
                                 if(OperationPriority[termToBeOperated.ParentTerm.MathOperator[0].ToString()] == 1) 
                                     if(termToBeOperated.ParentTerm.isNegative) inverse = false;
-                                foreach (var childterm in Eq.Terms)
-                                {
-                                    if (childterm.Terms != null)
-                                    {
-                                        foreach (var term in childterm.Terms)
-                                        {
-                                            term.isDraggable = false;
-                                        }
-                                    }
-                                    else childterm.isDraggable = false;
-                                }
+                                
                                 if (termToBeOperated.ParentIndex == 0)
                                 {
                                     termDropOn.ParentTerm.addRegularOperation(termToBeOperated,
@@ -1085,46 +1101,15 @@ public class MathExpression : DragAndDrop
                                         InverseOperationChar(termToBeOperated.ParentTerm.MathOperator[termToBeOperated.ParentIndex - 1],
                                             inverse));
                                 }
-                                foreach (var childterm in Eq.Terms)
-                                {
-                                    if (childterm.Terms != null)
-                                    {
-                                        foreach (var term in childterm.Terms)
-                                        {
-                                            term.isDraggable = true;
-                                        }
-                                    }
-                                    else childterm.isDraggable = true;
-                                }
+                                
                             }
                         }
                     }
                     else
                     {
                         MathExpression Eq = termToBeOperated.ParentTerm;
-                        foreach (var childterm in Eq.Terms)
-                        {
-                            if (childterm.Terms != null)
-                            {
-                                foreach (var term in childterm.Terms)
-                                {
-                                    term.isDraggable = false;
-                                }
-                            }
-                            else childterm.isDraggable = false;
-                        }
                         Eq.addRegularOperation(termToBeOperated, Random.Range(0,1f)>0.5f?'-':'/');
-                        foreach (var childterm in Eq.Terms)
-                        {
-                            if (childterm.Terms != null)
-                            {
-                                foreach (var term in childterm.Terms)
-                                {
-                                    term.isDraggable = true;
-                                }
-                            }
-                            else childterm.isDraggable = true;
-                        }
+                        
                     }
                 }
             }
@@ -1195,7 +1180,7 @@ public class MathExpression : DragAndDrop
     }
     bool IsTermEqualTo(MathExpression termToBeCompared, bool ParentNegative = false, bool inverseOP = false)
     {
-        Debug.Log("Comparing: "+(termToBeCompared.isNegative?'-':'+')+termToBeCompared.RawContent+","+(isNegative?'-':'+')+RawContent+","+ParentNegative);
+        //Debug.Log("Comparing: "+(termToBeCompared.isNegative?'-':'+')+termToBeCompared.RawContent+","+(isNegative?'-':'+')+RawContent+","+ParentNegative);
         if (MathOperator.Length != termToBeCompared.MathOperator.Length) return false;
         if (MathOperator.Length == 0)
             return RawContent == termToBeCompared.RawContent && !isNegative^ParentNegative^termToBeCompared.isNegative;
@@ -1250,7 +1235,7 @@ public class MathExpression : DragAndDrop
         }
 
         if (!PlusFlag && ParentNegative^isNegative^termToBeCompared.isNegative) EqualFlag = false;
-        Debug.Log(RawContent+","+termToBeCompared.RawContent+", equal: "+EqualFlag + ". PN/pn/PF: "+PN +","+ParentNegative+".."+":"+PlusFlag);
+        //Debug.Log(RawContent+","+termToBeCompared.RawContent+", equal: "+EqualFlag + ". PN/pn/PF: "+PN +","+ParentNegative+".."+":"+PlusFlag);
         return EqualFlag;
     }
 
@@ -1308,12 +1293,12 @@ public class MathExpression : DragAndDrop
                     //not finished yet
                     if (!DirectUsedTerms.Contains(j) && !DirectFoundMatch)
                     {
-                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (i == 0 ? '+' : MathOperator[j-1]) == '+')
+                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (j == 0 ? '+' : MathOperator[j-1]) == (i == 0? '+':termToBeCompared.MathOperator[i-1]))
                         {
                             DirectUsedTerms.Add(j);
                             DirectFoundMatch = true;
                         }
-                        else if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) && (i == 0 ? '+' : MathOperator[j-1]) == '-')
+                        else if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) && (j == 0 ? '+' : MathOperator[j-1]) != (i == 0 ? '+':termToBeCompared.MathOperator[i-1]))
                         {
                             DirectUsedTerms.Add(j);
                             DirectFoundMatch = true;
@@ -1321,12 +1306,12 @@ public class MathExpression : DragAndDrop
                     }
                     if (!InverseUsedTerms.Contains(j) && !InverseFoundMatch)
                     {
-                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) && (i == 0 ? '+' : MathOperator[j-1]) == '+')
+                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) && (j == 0 ? '+' : MathOperator[j-1]) == (i == 0? '+':termToBeCompared.MathOperator[i-1]))
                         {
                             InverseUsedTerms.Add(j);
                             InverseFoundMatch = true;
                         }
-                        else if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (i == 0 ? '+' : MathOperator[j-1]) == '-')
+                        else if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) && (j == 0 ? '+' : MathOperator[j-1]) == (i == 0 ? '+':termToBeCompared.MathOperator[i-1]))
                         {
                             InverseUsedTerms.Add(j);
                             InverseFoundMatch = true;
@@ -1350,23 +1335,28 @@ public class MathExpression : DragAndDrop
                 InverseFoundMatch = false;
                 for (int j = 0; j < Terms.Length; j++)
                 {
-                    if (!DirectUsedTerms.Contains(j) && !DirectFoundMatch)
+                    if (InverseUsedTerms.Contains(j) && DirectUsedTerms.Contains(j)) continue;
+                    if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) ||
+                        Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true))
                     {
-                        if (Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], false) || Terms[j].IsTermEqualTo(termToBeCompared.Terms[i], true) )
+                        if ((j == 0 ? '*' : MathOperator[j - 1]) ==
+                            (i == 0 ? '*' : termToBeCompared.MathOperator[i - 1]))
                         {
-                            if ((i == 0 ? '*' : MathOperator[j - 1]) == '*')
+                            if (!DirectUsedTerms.Contains(j) && !DirectFoundMatch)
                             {
-                                DirectUsedTerms.Add(j); 
+                                DirectUsedTerms.Add(j);
                                 DirectFoundMatch = true;
                             }
-                            else
+                        }
+                        else
+                        {
+                            if (!InverseUsedTerms.Contains(j) && !InverseFoundMatch)
                             {
                                 InverseUsedTerms.Add(j);
                                 InverseFoundMatch = true;
                             }
                         }
                     }
-                    
                     if (InverseFoundMatch && DirectFoundMatch) break;
                 }
                 if (!InverseFoundMatch && !DirectFoundMatch) {
@@ -1377,7 +1367,7 @@ public class MathExpression : DragAndDrop
             if (DirectUsedTerms.Count == termToBeCompared.Terms.Length) ContainFlag = 1;
             if (InverseUsedTerms.Count == termToBeCompared.Terms.Length) ContainFlag = -1;
         }
-        Debug.Log(RawContent+","+termToBeCompared.RawContent+", ContainFlag: "+ContainFlag + ". PN/PF: "+PN +",,,,,"+PlusFlag);
+        //Debug.Log(RawContent+","+termToBeCompared.RawContent+", ContainFlag: "+ContainFlag + ". PN/PF: "+PN +",,,,,"+PlusFlag);
         return ContainFlag;
     }
 }

@@ -123,6 +123,83 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &100452503
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 100452504}
+  - component: {fileID: 100452507}
+  - component: {fileID: 100452506}
+  m_Layer: 0
+  m_Name: ToolBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &100452504
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100452503}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1212861696}
+  - {fileID: 438538676}
+  m_Father: {fileID: 1115017226}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 647, y: -165}
+  m_SizeDelta: {x: 600, y: 300}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &100452506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100452503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.6593488, g: 0.89447963, b: 0.99371064, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &100452507
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100452503}
+  m_CullTransparentMesh: 1
 --- !u!1 &391119769
 GameObject:
   m_ObjectHideFlags: 0
@@ -191,6 +268,88 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &438538675
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 438538676}
+  - component: {fileID: 438538678}
+  - component: {fileID: 438538677}
+  m_Layer: 5
+  m_Name: FormulaCos2B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &438538676
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438538675}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 100452504}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -50}
+  m_SizeDelta: {x: 0, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &438538677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438538675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 0
+  m_PreferredHeight: 100
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
+--- !u!114 &438538678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438538675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 431a9ab225f30a943ba3d7c8076c61c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDraggable: 1
+  <Enclosed>k__BackingField: None
+  <MathOperator>k__BackingField: 
+  <EncloseSymbols>k__BackingField: []
+  <NegativeSymbol>k__BackingField: []
+  <OperatorObjects>k__BackingField: []
+  <RawContent>k__BackingField: 
+  <isNegative>k__BackingField: 0
+  InitialRawContent: cos2B=cosB*cosB-sinB*sinB
+  <Terms>k__BackingField: []
+  <ParentTerm>k__BackingField: {fileID: 0}
+  <ParentIndex>k__BackingField: 0
+  <ContentText>k__BackingField: {fileID: 0}
 --- !u!1 &802827650
 GameObject:
   m_ObjectHideFlags: 0
@@ -578,7 +737,7 @@ RectTransform:
   m_Children:
   - {fileID: 1981652743}
   - {fileID: 1684315575}
-  - {fileID: 1212861696}
+  - {fileID: 100452504}
   - {fileID: 1422942342}
   - {fileID: 1857034998}
   - {fileID: 2077394766}
@@ -734,8 +893,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1212861696}
   - component: {fileID: 1212861697}
+  - component: {fileID: 1212861698}
   m_Layer: 5
-  m_Name: addTerm
+  m_Name: FormulaSin2B
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -748,17 +908,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1212861695}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1115017226}
+  m_Father: {fileID: 100452504}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 0, y: 50}
+  m_SizeDelta: {x: 0, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1212861697
 MonoBehaviour:
@@ -772,7 +932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 431a9ab225f30a943ba3d7c8076c61c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDraggable: 0
+  isDraggable: 1
   <Enclosed>k__BackingField: None
   <MathOperator>k__BackingField: 
   <EncloseSymbols>k__BackingField: []
@@ -780,11 +940,31 @@ MonoBehaviour:
   <OperatorObjects>k__BackingField: []
   <RawContent>k__BackingField: 
   <isNegative>k__BackingField: 0
-  InitialRawContent: sin2B
+  InitialRawContent: sin2B=2*sinB*cosB
   <Terms>k__BackingField: []
   <ParentTerm>k__BackingField: {fileID: 0}
   <ParentIndex>k__BackingField: 0
   <ContentText>k__BackingField: {fileID: 0}
+--- !u!114 &1212861698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1212861695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 0
+  m_PreferredHeight: 100
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1290264367
 GameObject:
   m_ObjectHideFlags: 0
@@ -1103,7 +1283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 431a9ab225f30a943ba3d7c8076c61c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDraggable: 0
+  isDraggable: 1
   <Enclosed>k__BackingField: None
   <MathOperator>k__BackingField: 
   <EncloseSymbols>k__BackingField: []
@@ -1111,7 +1291,7 @@ MonoBehaviour:
   <OperatorObjects>k__BackingField: []
   <RawContent>k__BackingField: 
   <isNegative>k__BackingField: 0
-  InitialRawContent: sinA+cosA=sin2B+sinB
+  InitialRawContent: cos2B+sinB*sinB=sin2B
   <Terms>k__BackingField: []
   <ParentTerm>k__BackingField: {fileID: 0}
   <ParentIndex>k__BackingField: 0
