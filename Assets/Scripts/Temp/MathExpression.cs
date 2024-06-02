@@ -1016,15 +1016,22 @@ public class MathExpression : DragAndDrop
             return;
         }
         bool PlusFlag = origin.MathOperator.Length == 0 || OperationPriority[origin.MathOperator[0].ToString()] == 1;
+        
         MathExpression OP = origin.ParentTerm;
         int OPIndex = origin.ParentIndex;
         if (OP)
         {
+            bool mergeParentFlag = origin.MathOperator.Length == 0;
             Debug.Log("start operation1, contailFlag = "+ContainFlag + ", origin = "+OP.Terms[OPIndex].RawContent+"|"+OP.Terms[OPIndex].name);
             OP.Terms[OPIndex].addRegularOperation(CreateCopy(newEQ.Terms[0]),InverseOperationChar(PlusFlag?'+':'*',ContainFlag == 1),true);
             Debug.Log("start operation2, contailFlag = "+ContainFlag + ", origin = "+OP.Terms[OPIndex].RawContent+"|"+OP.Terms[OPIndex].name);
             OP.Terms[OPIndex].addRegularOperation(CreateCopy(newEQ.Terms[1]),InverseOperationChar(PlusFlag?'+':'*',ContainFlag == -1),true);
             OP.Terms[OPIndex].CancelAllSameTerms();
+            if (mergeParentFlag)
+            {
+                OP.MergeSameOperationInTerms();
+                OP.CancelAllSameTerms();
+            }
         }
         else
         {
@@ -1251,6 +1258,11 @@ public class MathExpression : DragAndDrop
         if (MathOperator.Length < termToBeCompared.MathOperator.Length) return 0;
         if (MathOperator.Length == 0)
             return RawContent == termToBeCompared.RawContent ?  (!isNegative^termToBeCompared.isNegative? 1 : -1 ): 0;
+        if (MathOperator == "=")
+        {
+            Debug.LogError("Equation using TermContaining");
+            return 0;
+        }
         bool PlusFlag = OperationPriority[MathOperator[0].ToString()] == 1;
         if (termToBeCompared.MathOperator.Length == 0)
         {
