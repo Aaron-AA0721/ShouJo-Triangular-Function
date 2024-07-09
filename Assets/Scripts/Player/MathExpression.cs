@@ -18,6 +18,8 @@ public class MathExpression : DragAndDrop
         {"*",2},
         {"/",2},
     };
+
+    public static Dictionary<string, Color> ContentColor = new Dictionary<string, Color>();
     [field: Header("MathExpression Setting")]
     [field: SerializeField] public string Enclosed { get; private set; }= "None";
     [field: SerializeField] public string MathOperator{ get; private set; } = "";
@@ -335,7 +337,17 @@ public class MathExpression : DragAndDrop
                 Rect.sizeDelta = ContentText.GetComponent<RectTransform>().sizeDelta;
                 ContentText.GetComponent<RectTransform>().position = Rect.position;
             }
-            yield return null;
+            if (!ContentColor.ContainsKey(RawContent))
+            {
+                float total = Random.Range(2.5f,3f);
+                float r = Random.Range(0.5f,1f), g=Random.Range(0.5f,1f), b=total-r-g;
+                Render_Image.color = new Color(r,g,b,1);
+                ContentColor[RawContent] = Render_Image.color;
+            }
+            else
+            {
+                Render_Image.color = ContentColor[RawContent];
+            }
         }
         else
         {
@@ -1070,7 +1082,7 @@ public class MathExpression : DragAndDrop
                 }
                 else
                 {
-                    PlusFlag = MathOperator.Length == 0 || OperationPriority[MathOperator[0].ToString()] == 1;
+                    //PlusFlag = MathOperator.Length == 0 || OperationPriority[MathOperator[0].ToString()] == 1;
                     while (termDropOn.ParentTerm != null)
                     {
                         if (termDropOn.ParentTerm.MathOperator == "=") break;
@@ -1245,12 +1257,7 @@ public class MathExpression : DragAndDrop
         //Debug.Log(RawContent+","+termToBeCompared.RawContent+", equal: "+EqualFlag + ". PN/pn/PF: "+PN +","+ParentNegative+".."+":"+PlusFlag);
         return EqualFlag;
     }
-
-    public void TryFind(MathExpression termToBeCompared)
-    {
-        if(MathOperator == "=")
-            Debug.Log(Terms[0].IsTermContaining(termToBeCompared)+" term 0; term 1 : "+Terms[1].IsTermContaining(termToBeCompared));
-    }
+    
     //0 = not found, 1 = found direct operation, -1 = found inverse operation
     int IsTermContaining(MathExpression termToBeCompared)
     {
@@ -1291,8 +1298,6 @@ public class MathExpression : DragAndDrop
         List<int> InverseUsedTerms = new List<int>();
         bool DirectFoundMatch = false;
         bool InverseFoundMatch = false;
-        bool DirectFlag = true;
-        bool InverseFlag = true;
         bool PN = isNegative^termToBeCompared.isNegative;
         if (PlusFlag)
         {

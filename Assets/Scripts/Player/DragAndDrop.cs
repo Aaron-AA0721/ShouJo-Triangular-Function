@@ -8,13 +8,16 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 {
     // Start is called before the first frame update
     public RectTransform Rect { get; protected set; }
-    private Vector2 InitialPos;
+    public Vector2 InitialPos;
     public Image Render_Image { get; protected set; } = null;
+    private Color OriginalColor;
     public bool isDraggable  = true;
-    void Start()
+    [SerializeField] protected bool ResetPos = true;
+    protected virtual void Start()
     {
         Rect = GetComponent<RectTransform>();
-        InitialPos = Rect.localPosition;
+        if(Render_Image == null)Render_Image = GetComponent<Image>();
+        InitialPos = transform.localPosition;
     }
 
     // Update is called once per frame
@@ -29,8 +32,8 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         if (isDraggable)
         {
             Render_Image.raycastTarget = false;
-            InitialPos = Rect.localPosition;
-            Rect.position = eventData.position + new Vector2(0,Rect.sizeDelta.y/2+10);
+            InitialPos = transform.localPosition;
+            transform.position = (Vector2)Camera.main.ScreenToWorldPoint(eventData.position) + new Vector2(0,Rect.sizeDelta.y/2+10);
         }
         else return;
         //Debug.Log("OnBeginDrag, "+name);
@@ -40,7 +43,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         //Debug.Log("OnDrag, "+name);
         if (isDraggable)
         {
-            Rect.localPosition += (Vector3)eventData.delta;
+            transform.position += (Vector3)eventData.delta;
         }
         else return;
     }
@@ -49,10 +52,10 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         if (isDraggable)
         {
             Render_Image.raycastTarget = true;
-            Rect.localPosition = InitialPos;
+            if(ResetPos)transform.localPosition = InitialPos;
         }
         else return;
-        Debug.Log("OnEndDrag, "+name);
+        //Debug.Log("OnEndDrag, "+name);
     }
     public virtual void OnDrop(PointerEventData eventData)
     {
@@ -75,7 +78,8 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
         if (Render_Image != null)
         {
-            Render_Image.color = new Color(1- parentNum/10f, 1- parentNum/10f, 1- parentNum/10f, 1);
+            OriginalColor = Render_Image.color;
+            Render_Image.color = new Color(OriginalColor.r*(1- parentNum/10f), (1- parentNum/10f)*OriginalColor.g, (1- parentNum/10f)*OriginalColor.b, 1);
         }
     }
     public virtual void OnPointerExit(PointerEventData eventData)
@@ -83,7 +87,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         //Debug.Log("OnPointerExit, "+name);
         if (Render_Image != null)
         {
-            Render_Image.color = new Color(1, 1, 1, 1);
+            Render_Image.color = OriginalColor;
         }
     }
 }

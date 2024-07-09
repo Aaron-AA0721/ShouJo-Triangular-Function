@@ -8,18 +8,21 @@ public class demo1Controller : MonoBehaviour
     public MathExpression Equation;
 
     public GameObject EndPanel;
+
+    public static bool GameEnd = false;
     // Start is called before the first frame update
     void Start()
     {
-        
+        GameEnd = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Equation.RawContent == "1/2=tanA")
+        if (GameEnd)
         {
             EndPanel.SetActive(true);
+            GameEnd = false;
         }
     }
 
